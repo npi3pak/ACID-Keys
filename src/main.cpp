@@ -7,8 +7,20 @@
 #include "MyCallbacks.cpp"
 #include "MyCharacteristicCallback.cpp"
 
+#include "esp32-hal-adc.h"
+
+#define EN_1 15
+#define EN_2 13
+#define SIG_1 12
+#define SIG_2 14
+#define S0 19
+#define S1 23
+#define S2 18
+#define S3 5
 #define SERVICE_UUID "03b80e5a-ede8-4b33-a751-6ce34ec4c700"
 #define CHARACTERISTIC_UUID "7772e5db-3868-4112-a1a9-f2669d106bf3"
+
+extern void readButtonBank(int bank_en, int bank_sig);
 
 BLECharacteristic *pCharacteristic;
 
@@ -23,48 +35,72 @@ uint8_t midiPacket[] = {
 void setup()
 {
   Serial.begin(115200);
-  ESP_LOGD(LOG_TAG, "Starting BLE work!");
+
+  pinMode(S0, OUTPUT);
+  pinMode(S1, OUTPUT);
+  pinMode(S2, OUTPUT);
+  pinMode(S3, OUTPUT);
+
+  digitalWrite(S0, LOW);
+  digitalWrite(S1, LOW);
+  digitalWrite(S2, LOW);
+  digitalWrite(S3, LOW);
+
+  pinMode(EN_1, OUTPUT);
+  digitalWrite(EN_1, HIGH);
+
+  pinMode(EN_2, OUTPUT);
+  digitalWrite(EN_2, HIGH);
+
+  pinMode(SIG_1, INPUT);
+  pinMode(SIG_2, INPUT);
+
+  adcAttachPin(SIG_1);
+  adcAttachPin(SIG_2);
+  analogReadResolution(11);
+  analogSetAttenuation(ADC_6db);
 
   BLEDevice::init("ESP32");
-  BLEServer *pServer = BLEDevice::createServer();
-  pServer->setCallbacks(new MyCallbacks());
+  // BLEServer *pServer = BLEDevice::createServer();
+  // pServer->setCallbacks(new MyCallbacks());
 
-  BLEService *pService = pServer->createService(SERVICE_UUID);
-  pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
-                                                   BLECharacteristic::PROPERTY_READ |
-                                                       BLECharacteristic::PROPERTY_NOTIFY |
-                                                       BLECharacteristic::PROPERTY_WRITE_NR);
+  // BLEService *pService = pServer->createService(SERVICE_UUID);
+  // pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
+  //                                                  BLECharacteristic::PROPERTY_READ |
+  //                                                      BLECharacteristic::PROPERTY_NOTIFY |
+  //                                                      BLECharacteristic::PROPERTY_WRITE_NR);
 
-  pCharacteristic->setCallbacks(new MyCharacteristicCallback());
+  // pCharacteristic->setCallbacks(new MyCharacteristicCallback());
 
-  pCharacteristic->addDescriptor(new BLE2902());
-  pService->start();
+  // pCharacteristic->addDescriptor(new BLE2902());
+  // pService->start();
 
-  BLEAdvertising *pAdvertising = pServer->getAdvertising();
-  pAdvertising->addServiceUUID(pService->getUUID());
-  pAdvertising->start();
+  // BLEAdvertising *pAdvertising = pServer->getAdvertising();
+  // pAdvertising->addServiceUUID(pService->getUUID());
+  // pAdvertising->start();
 
-  BLESecurity *pSecurity = new BLESecurity();
-  pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
-
-  ESP_LOGD(LOG_TAG, "Advertising started!");
-
-  pinMode(0, INPUT);
-  pinMode(2, OUTPUT);
-  digitalWrite(2, HIGH);
+  // BLESecurity *pSecurity = new BLESecurity();
+  // pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
 }
 
 boolean prevIsPressed = false;
 void loop()
 {
-  midiPacket[2] = 0x80;                     // note up, channel 0
-  midiPacket[4] = 0;                        // velocity
-  pCharacteristic->setValue(midiPacket, 5); // packet, length in bytes)
-  pCharacteristic->notify();
-  delay(50);
-  midiPacket[2] = 0x90;                     // note down, channel 0
-  midiPacket[4] = 127;                      // velocity
-  pCharacteristic->setValue(midiPacket, 5); // packet, length in bytes
-  pCharacteristic->notify();
-  delay(50);
+  // midiPacket[2] = 0x80;                     // note up, channel 0
+  // midiPacket[4] = 0;                        // velocity
+  // pCharacteristic->setValue(midiPacket, 5); // packet, length in bytes)
+  // pCharacteristic->notify();
+  // delay(50);
+  // midiPacket[2] = 0x90;                     // note down, channel 0
+  // midiPacket[4] = 127;                      // velocity
+  // pCharacteristic->setValue(midiPacket, 5); // packet, length in bytes
+  // pCharacteristic->notify();
+  // delay(50);
+
+  // Serial.print('..');
+  readButtonBank(EN_1, SIG_1);
+  // Serial.print('..');
+  // readButtonBank(EN_2, SIG_2);
+  Serial.println();
+  delay(100);
 }
