@@ -1,8 +1,8 @@
 
 #define EN_1 15
 #define EN_2 13
-#define SIG_1 12
-#define SIG_2 14
+#define SIG_1 39
+#define SIG_2 36
 #define S0 19
 #define S1 23
 #define S2 18
