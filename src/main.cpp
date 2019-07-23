@@ -24,16 +24,17 @@
 //TODO: Change SIG 14 to SIG SENSOR_VТ	GPIO36
 
 extern void readButtonBank(int bank_en, int bank_sig);
+extern void processButtons(BLECharacteristic *pCharacteristic);
 
 BLECharacteristic *pCharacteristic;
 
-uint8_t midiPacket[] = {
-    0x80, // header
-    0x80, // timestamp, not implemented
-    0x00, // status
-    0x60, // 0x3c == 60 == middle c
-    0x00  // velocity
-};
+// uint8_t midiPacket[] = {
+//     0x80, // header
+//     0x80, // timestamp, not implemented
+//     0x00, // status
+//     0x60, // 0x3c == 60 == middle c
+//     0x00  // velocity
+// };
 
 void setup()
 {
@@ -64,26 +65,27 @@ void setup()
   // analogSetAttenuation(ADC_6db);
 
   BLEDevice::init("ESP32");
-  // BLEServer *pServer = BLEDevice::createServer();
-  // pServer->setCallbacks(new MyCallbacks());
+  BLEServer *pServer = BLEDevice::createServer();
+  pServer->setCallbacks(new MyCallbacks());
 
-  // BLEService *pService = pServer->createService(SERVICE_UUID);
-  // pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
-  //                                                  BLECharacteristic::PROPERTY_READ |
-  //                                                      BLECharacteristic::PROPERTY_NOTIFY |
-  //                                                      BLECharacteristic::PROPERTY_WRITE_NR);
+  BLEService *pService = pServer->createService(SERVICE_UUID);
+  pCharacteristic = pService->createCharacteristic(CHARACTERISTIC_UUID,
+                                                   BLECharacteristic::PROPERTY_READ |
+                                                       BLECharacteristic::PROPERTY_NOTIFY |
+                                                       BLECharacteristic::PROPERTY_WRITE_NR);
 
-  // pCharacteristic->setCallbacks(new MyCharacteristicCallback());
+  pCharacteristic->setCallbacks(new MyCharacteristicCallback());
 
-  // pCharacteristic->addDescriptor(new BLE2902());
-  // pService->start();
+  pCharacteristic->addDescriptor(new BLE2902());
+  pService->start();
 
-  // BLEAdvertising *pAdvertising = pServer->getAdvertising();
-  // pAdvertising->addServiceUUID(pService->getUUID());
-  // pAdvertising->start();
+  BLEAdvertising *pAdvertising = pServer->getAdvertising();
+  pAdvertising->addServiceUUID(pService->getUUID());
+  pAdvertising->start();
 
-  // BLESecurity *pSecurity = new BLESecurity();
-  // pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
+  BLESecurity *pSecurity = new BLESecurity();
+  pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
+  Serial.print('ok!');
 }
 
 boolean prevIsPressed = false;
@@ -103,15 +105,8 @@ void loop()
   // Serial.print('..');
   // readButtonBank(EN_1, SIG_1);
   // Serial.print('..');
-  readButtonBank(EN_2, SIG_2);
-  Serial.println();
-  delay(100);
+  // readButtonBank(EN_2, SIG_2);
+  // Serial.println();
+  // delay(100);
+  processButtons(pCharacteristic);
 }
-
-
-// EN_1 
-// E DONT WORK
-
-
-// EN_2 G C
-// G# A#

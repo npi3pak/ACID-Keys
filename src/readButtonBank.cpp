@@ -9,6 +9,17 @@
 #define S3 5
 
 #include <Arduino.h>
+#include <BLEDevice.h>
+
+uint8_t midiPacket[] = {
+    0x80, // header
+    0x80, // timestamp, not implemented
+    0x00, // status
+    0x60, // 0x3c == 60 == middle c
+    0x00  // velocity
+};
+
+int selectedOctave = 3;
 
 typedef struct
 {
@@ -17,6 +28,16 @@ typedef struct
   int bank;
   boolean value;
 } buttons;
+
+buttons octButtonState[]{
+    {25, 12, 0, false},
+    {26, 13, 0, false},
+};
+
+buttons octButtonPrevState[]{
+    {25, 12, 0, false},
+    {26, 13, 0, false},
+};
 
 buttons buttonPrevState[]{
     {0, 0, 1, false},
@@ -31,19 +52,19 @@ buttons buttonPrevState[]{
     {9, 9, 1, false},
     {10, 10, 1, false},
     {11, 11, 1, false},
-    {12, 0, 2, false},
-    {13, 1, 2, false},
-    {14, 2, 2, false},
-    {15, 3, 2, false},
-    {16, 4, 2, false},
-    {17, 5, 2, false},
-    {18, 6, 2, false},
-    {19, 7, 2, false},
-    {20, 8, 2, false},
-    {21, 9, 2, false},
-    {22, 10, 2, false},
-    {23, 11, 2, false},
-    {24, 12, 2, false},
+    // {12, 0, 2, false},
+    // {13, 1, 2, false},
+    // {14, 2, 2, false},
+    // {15, 3, 2, false},
+    // {16, 4, 2, false},
+    // {17, 5, 2, false},
+    // {18, 6, 2, false},
+    // {19, 7, 2, false},
+    // {20, 8, 2, false},
+    // {21, 9, 2, false},
+    // {22, 10, 2, false},
+    // {23, 11, 2, false},
+    // {24, 12, 2, false},
 };
 
 buttons buttonState[]{
@@ -59,19 +80,19 @@ buttons buttonState[]{
     {9, 9, 1, false},
     {10, 10, 1, false},
     {11, 11, 1, false},
-    {12, 0, 2, false},
-    {13, 1, 2, false},
-    {14, 2, 2, false},
-    {15, 3, 2, false},
-    {16, 4, 2, false},
-    {17, 5, 2, false},
-    {18, 6, 2, false},
-    {19, 7, 2, false},
-    {20, 8, 2, false},
-    {21, 9, 2, false},
-    {22, 10, 2, false},
-    {23, 11, 2, false},
-    {24, 12, 2, false},
+    // {12, 0, 2, false},
+    // {13, 1, 2, false},
+    // {14, 2, 2, false},
+    // {15, 3, 2, false},
+    // {16, 4, 2, false},
+    // {17, 5, 2, false},
+    // {18, 6, 2, false},
+    // {19, 7, 2, false},
+    // // {20, 8, 2, false},
+    // // {21, 9, 2, false},
+    // // {22, 10, 2, false},
+    // {23, 11, 2, false},
+    // {24, 12, 2, false},
 };
 
 int readMux(int channel, int bank_en, int bank_sig)
@@ -115,10 +136,9 @@ void readButtonBank(int bank_en, int bank_sig)
     Serial.print(readMux(i, bank_en, bank_sig));
     Serial.print(". ");
   }
-  // Serial.println();
 }
 
-void processButtons()
+void processButtons(BLECharacteristic *pCharacteristic)
 {
   for (int i = 0; i < sizeof(buttonState) / sizeof(buttons); ++i)
   {
@@ -140,7 +160,9 @@ void processButtons()
 
     //TODO: normalize to boolean;
     value = readMux(buttonState[i].channel, bank_en, bank_sig);
-    if (value > 4500)
+    Serial.print(value);
+    Serial.print(' ');
+    if (value > 254)
     {
       buttonState[i].value = true;
     }
@@ -151,10 +173,60 @@ void processButtons()
 
     if (buttonState[i].value != buttonPrevState[i].value)
     {
-      //send message
-      Serial.println(buttonState[i].value);
-      Serial.println(buttonState[i].channel);
+
+      int send = (buttonState[i].value) ? 0x90 : 0x80;
+      midiPacket[2] = send;                     // note up, channel 0
+      midiPacket[3] = 24+(12*selectedOctave) + buttonState[i].id;   // note up, channel 0
+      midiPacket[4] = 127;                      // velocity
+      pCharacteristic->setValue(midiPacket, 5); // packet, length in bytes)
+      pCharacteristic->notify();
+      Serial.print(send);
+      Serial.print(' ');
+      Serial.print(12 + buttonState[i].id);
     }
   }
+  Serial.println(' ');
+
+  byte bank_en = EN_1;
+  byte bank_sig = SIG_1;
+  byte incValue = readMux(octButtonState[1].channel, bank_en, bank_sig);
+
+  if (incValue > 254)
+  {
+    octButtonState[1].value = true;
+  }
+  else
+  {
+    octButtonState[1].value = false;
+  }
+
+  if (octButtonState[1].value != octButtonPrevState[1].value)
+  {
+    if (selectedOctave < 8)
+    {
+      selectedOctave += 1;
+    }
+  }
+
+  byte decValue = readMux(octButtonState[0].channel, bank_en, bank_sig);
+
+  if (decValue > 254)
+  {
+    octButtonState[0].value = true;
+  }
+  else
+  {
+    octButtonState[0].value = false;
+  }
+
+  if (octButtonState[0].value != octButtonPrevState[0].value)
+  {
+    if (selectedOctave > -1)
+    {
+      selectedOctave -= 1;
+    }
+  }
+
   memcpy(&buttonPrevState, &buttonState, sizeof(buttonState));
+  memcpy(&octButtonPrevState, &octButtonState, sizeof(octButtonState));
 }
