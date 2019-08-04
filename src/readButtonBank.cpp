@@ -53,19 +53,20 @@ buttons buttonPrevState[]{
     {9, 9, 1, false, 0},
     {10, 10, 1, false, 0},
     {11, 11, 1, false, 0},
-    // {12, 0, 2, false},
-    // {13, 1, 2, false},
-    // {14, 2, 2, false},
-    // {15, 3, 2, false},
-    // {16, 4, 2, false},
-    // {17, 5, 2, false},
-    // {18, 6, 2, false},
-    // {19, 7, 2, false},
-    // {20, 8, 2, false},
-    // {21, 9, 2, false},
-    // {22, 10, 2, false},
-    // {23, 11, 2, false},
-    // {24, 12, 2, false},
+
+    {12, 0, 2, false, 0},
+    {13, 1, 2, false, 0},
+    {14, 2, 2, false, 0},
+    {15, 3, 2, false, 0},
+    {16, 4, 2, false, 0},
+    {17, 5, 2, false, 0},
+    {18, 6, 2, false, 0},
+    {19, 7, 2, false, 0},
+    {20, 8, 2, false, 0},
+    {21, 9, 2, false, 0},
+    {22, 10, 2, false, 0},
+    {23, 11, 2, false, 0},
+    {24, 12, 2, false, 0},
 };
 
 buttons buttonState[]{
@@ -81,19 +82,20 @@ buttons buttonState[]{
     {9, 9, 1, false, 0},
     {10, 10, 1, false, 0},
     {11, 11, 1, false, 0},
-    // {12, 0, 2, false},
-    // {13, 1, 2, false},
-    // {14, 2, 2, false},
-    // {15, 3, 2, false},
-    // {16, 4, 2, false},
-    // {17, 5, 2, false},
-    // {18, 6, 2, false},
-    // {19, 7, 2, false},
-    // // {20, 8, 2, false},
-    // // {21, 9, 2, false},
-    // // {22, 10, 2, false},
-    // {23, 11, 2, false},
-    // {24, 12, 2, false},
+
+    {12, 0, 2, false, 0},
+    {13, 1, 2, false, 0},
+    {14, 2, 2, false, 0},
+    {15, 3, 2, false, 0},
+    {16, 4, 2, false, 0},
+    {17, 5, 2, false, 0},
+    {18, 6, 2, false, 0},
+    {19, 7, 2, false, 0},
+    {20, 8, 2, false, 0},
+    {21, 9, 2, false, 0},
+    {22, 10, 2, false, 0},
+    {23, 11, 2, false, 0},
+    {24, 12, 2, false, 0},
 };
 
 int readMux(int channel, int bank_en, int bank_sig)
@@ -145,7 +147,7 @@ void processButtons(BLECharacteristic *pCharacteristic)
   {
     byte bank_en;
     byte bank_sig;
-    byte value;
+    int value;
 
     if (buttonState[i].bank == 1)
     {
@@ -164,14 +166,14 @@ void processButtons(BLECharacteristic *pCharacteristic)
     Serial.print(value);
     Serial.print(' ');
 
-    buttonState[i].value = (value > 254);
+    buttonState[i].value = (value > 4094);
 
     if (buttonState[i].value != buttonPrevState[i].value)
     {
 
       int send = (buttonState[i].value) ? 0x90 : 0x80;
       midiPacket[2] = send;                                           // note up, channel 0
-      midiPacket[3] = 24 + (12 * selectedOctave) + buttonState[i].id; // note up, channel 0
+      midiPacket[3] = 24 + (12 * (selectedOctave+buttonState[i].bank)) + buttonState[i].id; // note up, channel 0
       midiPacket[4] = 127;                                            // velocity
       pCharacteristic->setValue(midiPacket, 5);                       // packet, length in bytes)
       pCharacteristic->notify();
@@ -185,16 +187,16 @@ void processButtons(BLECharacteristic *pCharacteristic)
   byte bank_en = EN_1;
   byte bank_sig = SIG_1;
 
-  byte incValue = readMux(octButtonState[1].channel, bank_en, bank_sig);
-  octButtonState[1].value = (incValue > 254);
+  int incValue = readMux(octButtonState[1].channel, bank_en, bank_sig);
+  octButtonState[1].value = (incValue > 4094);
   
   if (octButtonState[1].value != octButtonPrevState[1].value && selectedOctave < 8)
   {
     selectedOctave += 1;
   }
 
-  byte decValue = readMux(octButtonState[0].channel, bank_en, bank_sig);
-  octButtonState[0].value = (decValue > 254);
+  int decValue = readMux(octButtonState[0].channel, bank_en, bank_sig);
+  octButtonState[0].value = (decValue > 4094);
   
   if (octButtonState[0].value != octButtonPrevState[0].value && selectedOctave > -1)
   {
