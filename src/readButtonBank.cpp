@@ -41,61 +41,61 @@ buttons octButtonPrevState[]{
 };
 
 buttons buttonPrevState[]{
-    {0, 0, 1, false, 0},
-    {1, 1, 1, false, 0},
-    {2, 2, 1, false, 0},
-    {3, 3, 1, false, 0},
-    {4, 4, 1, false, 0},
-    {5, 5, 1, false, 0},
-    {6, 6, 1, false, 0},
-    {7, 7, 1, false, 0},
-    {8, 8, 1, false, 0},
-    {9, 9, 1, false, 0},
-    {10, 10, 1, false, 0},
-    {11, 11, 1, false, 0},
+    {0, 0, 0, false, 0},
+    {1, 1, 0, false, 0},
+    {2, 2, 0, false, 0},
+    {3, 3, 0, false, 0},
+    {4, 4, 0, false, 0},
+    {5, 5, 0, false, 0},
+    {6, 6, 0, false, 0},
+    {7, 7, 0, false, 0},
+    {8, 8, 0, false, 0},
+    {9, 9, 0, false, 0},
+    {10, 10, 0, false, 0},
+    {11, 11, 0, false, 0},
 
-    {12, 0, 2, false, 0},
-    {13, 1, 2, false, 0},
-    {14, 2, 2, false, 0},
-    {15, 3, 2, false, 0},
-    {16, 4, 2, false, 0},
-    {17, 5, 2, false, 0},
-    {18, 6, 2, false, 0},
-    {19, 7, 2, false, 0},
-    {20, 8, 2, false, 0},
-    {21, 9, 2, false, 0},
-    {22, 10, 2, false, 0},
-    {23, 11, 2, false, 0},
-    {24, 12, 2, false, 0},
+    {12, 0, 1, false, 0},
+    {13, 1, 1, false, 0},
+    {14, 2, 1, false, 0},
+    {15, 3, 1, false, 0},
+    {16, 4, 1, false, 0},
+    {17, 5, 1, false, 0},
+    {18, 6, 1, false, 0},
+    {19, 7, 1, false, 0},
+    {20, 8, 1, false, 0},
+    {21, 9, 1, false, 0},
+    {22, 10, 1, false, 0},
+    {23, 11, 1, false, 0},
+    {24, 12, 1, false, 0},
 };
 
 buttons buttonState[]{
-    {0, 0, 1, false, 0},
-    {1, 1, 1, false, 0},
-    {2, 2, 1, false, 0},
-    {3, 3, 1, false, 0},
-    {4, 4, 1, false, 0},
-    {5, 5, 1, false, 0},
-    {6, 6, 1, false, 0},
-    {7, 7, 1, false, 0},
-    {8, 8, 1, false, 0},
-    {9, 9, 1, false, 0},
-    {10, 10, 1, false, 0},
-    {11, 11, 1, false, 0},
+    {0, 0, 0, false, 0},
+    {1, 1, 0, false, 0},
+    {2, 2, 0, false, 0},
+    {3, 3, 0, false, 0},
+    {4, 4, 0, false, 0},
+    {5, 5, 0, false, 0},
+    {6, 6, 0, false, 0},
+    {7, 7, 0, false, 0},
+    {8, 8, 0, false, 0},
+    {9, 9, 0, false, 0},
+    {10, 10, 0, false, 0},
+    {11, 11, 0, false, 0},
 
-    {12, 0, 2, false, 0},
-    {13, 1, 2, false, 0},
-    {14, 2, 2, false, 0},
-    {15, 3, 2, false, 0},
-    {16, 4, 2, false, 0},
-    {17, 5, 2, false, 0},
-    {18, 6, 2, false, 0},
-    {19, 7, 2, false, 0},
-    {20, 8, 2, false, 0},
-    {21, 9, 2, false, 0},
-    {22, 10, 2, false, 0},
-    {23, 11, 2, false, 0},
-    {24, 12, 2, false, 0},
+    {12, 0, 1, false, 0},
+    {13, 1, 1, false, 0},
+    {14, 2, 1, false, 0},
+    {15, 3, 1, false, 0},
+    {16, 4, 1, false, 0},
+    {17, 5, 1, false, 0},
+    {18, 6, 1, false, 0},
+    {19, 7, 1, false, 0},
+    {20, 8, 1, false, 0},
+    {21, 9, 1, false, 0},
+    {22, 10, 1, false, 0},
+    {23, 11, 1, false, 0},
+    {24, 12, 1, false, 0},
 };
 
 int readMux(int channel, int bank_en, int bank_sig)
@@ -127,7 +127,6 @@ int readMux(int channel, int bank_en, int bank_sig)
     digitalWrite(controlPin[i], muxChannel[channel][i]);
   }
   int val = analogRead(bank_sig);
-  // int val = digitalRead(bank_sig);
   digitalWrite(bank_en, LOW);
   return val;
 }
@@ -141,6 +140,10 @@ void readButtonBank(int bank_en, int bank_sig)
   }
 }
 
+int buttonIdToData(int ButtonId, int selectedOctave) {
+  return (12 * selectedOctave) + 24 + ButtonId;
+}
+
 void processButtons(BLECharacteristic *pCharacteristic)
 {
   for (int i = 0; i < sizeof(buttonState) / sizeof(buttons); ++i)
@@ -149,13 +152,13 @@ void processButtons(BLECharacteristic *pCharacteristic)
     byte bank_sig;
     int value;
 
-    if (buttonState[i].bank == 1)
+    if (buttonState[i].bank == 0)
     {
       bank_en = EN_1;
       bank_sig = SIG_1;
     }
 
-    if (buttonState[i].bank == 2)
+    if (buttonState[i].bank == 1)
     {
       bank_en = EN_2;
       bank_sig = SIG_2;
@@ -163,8 +166,6 @@ void processButtons(BLECharacteristic *pCharacteristic)
 
     //TODO: normalize to boolean;
     value = readMux(buttonState[i].channel, bank_en, bank_sig);
-    Serial.print(value);
-    Serial.print(' ');
 
     buttonState[i].value = (value > 4094);
 
@@ -172,17 +173,15 @@ void processButtons(BLECharacteristic *pCharacteristic)
     {
 
       int send = (buttonState[i].value) ? 0x90 : 0x80;
-      midiPacket[2] = send;                                           // note up, channel 0
-      midiPacket[3] = 24 + (12 * (selectedOctave+buttonState[i].bank)) + buttonState[i].id; // note up, channel 0
-      midiPacket[4] = 127;                                            // velocity
-      pCharacteristic->setValue(midiPacket, 5);                       // packet, length in bytes)
+      int data = (buttonState[i].value) ? buttonIdToData(buttonState[i].id, selectedOctave) : buttonState[i].data;
+      midiPacket[2] = send;                                                                 // note up, channel 0
+      midiPacket[3] = data;                    // note up, channel 0
+      midiPacket[4] = 127;                                                                  // velocity
+      pCharacteristic->setValue(midiPacket, 5);                                             // packet, length in bytes)
       pCharacteristic->notify();
-      Serial.print(send);
-      Serial.print(' ');
-      Serial.print(12 + buttonState[i].id);
+      buttonState[i].data = data;
     }
   }
-  Serial.println(' ');
 
   byte bank_en = EN_1;
   byte bank_sig = SIG_1;
@@ -190,7 +189,7 @@ void processButtons(BLECharacteristic *pCharacteristic)
   int incValue = readMux(octButtonState[1].channel, bank_en, bank_sig);
   octButtonState[1].value = (incValue > 4094);
   
-  if (octButtonState[1].value != octButtonPrevState[1].value && selectedOctave < 8)
+  if ( octButtonState[1].value && octButtonState[1].value != octButtonPrevState[1].value && selectedOctave < 8)
   {
     selectedOctave += 1;
   }
@@ -198,15 +197,11 @@ void processButtons(BLECharacteristic *pCharacteristic)
   int decValue = readMux(octButtonState[0].channel, bank_en, bank_sig);
   octButtonState[0].value = (decValue > 4094);
   
-  if (octButtonState[0].value != octButtonPrevState[0].value && selectedOctave > -1)
+  if (octButtonState[0].value && octButtonState[0].value != octButtonPrevState[0].value &&  selectedOctave > -2)
   {
     selectedOctave -= 1;
   }
 
   memcpy(&buttonPrevState, &buttonState, sizeof(buttonState));
   memcpy(&octButtonPrevState, &octButtonState, sizeof(octButtonState));
-}
-
-int buttonIdToData(int ButtonId, int selectedOctave) {
-  return 24 + (12 * selectedOctave) + ButtonId;
 }

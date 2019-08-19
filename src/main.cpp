@@ -64,7 +64,7 @@ void setup()
   // analogReadResolution(11);
   // analogSetAttenuation(ADC_6db);
 
-  BLEDevice::init("ESP32");
+  BLEDevice::init("Papercut midi");
   BLEServer *pServer = BLEDevice::createServer();
   pServer->setCallbacks(new MyCallbacks());
 
@@ -79,9 +79,15 @@ void setup()
   pCharacteristic->addDescriptor(new BLE2902());
   pService->start();
 
-  BLEAdvertising *pAdvertising = pServer->getAdvertising();
+  // BLEAdvertising *pAdvertising = pServer->getAdvertising();
+  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(pService->getUUID());
   pAdvertising->start();
+
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x12);
+  pAdvertising->setMaxPreferred(0x16);
+  BLEDevice::startAdvertising();
 
   BLESecurity *pSecurity = new BLESecurity();
   pSecurity->setAuthenticationMode(ESP_LE_AUTH_REQ_SC_BOND);
