@@ -1,3 +1,5 @@
+#include <Arduino.h>
+#include <BLEDevice.h>
 
 #define EN_1 15
 #define EN_2 13
@@ -7,9 +9,6 @@
 #define S1 23
 #define S2 18
 #define S3 5
-
-#include <Arduino.h>
-#include <BLEDevice.h>
 
 uint8_t midiPacket[] = {
     0x80, // header
@@ -140,7 +139,8 @@ void readButtonBank(int bank_en, int bank_sig)
   }
 }
 
-int buttonIdToData(int ButtonId, int selectedOctave) {
+int buttonIdToData(int ButtonId, int selectedOctave)
+{
   return (12 * selectedOctave) + 24 + ButtonId;
 }
 
@@ -174,10 +174,10 @@ void processButtons(BLECharacteristic *pCharacteristic)
 
       int send = (buttonState[i].value) ? 0x90 : 0x80;
       int data = (buttonState[i].value) ? buttonIdToData(buttonState[i].id, selectedOctave) : buttonState[i].data;
-      midiPacket[2] = send;                                                                 // note up, channel 0
-      midiPacket[3] = data;                    // note up, channel 0
-      midiPacket[4] = 127;                                                                  // velocity
-      pCharacteristic->setValue(midiPacket, 5);                                             // packet, length in bytes)
+      midiPacket[2] = send;                     // note up, channel 0
+      midiPacket[3] = data;                     // note up, channel 0
+      midiPacket[4] = 127;                      // velocity
+      pCharacteristic->setValue(midiPacket, 5); // packet, length in bytes)
       pCharacteristic->notify();
       buttonState[i].data = data;
     }
@@ -188,16 +188,16 @@ void processButtons(BLECharacteristic *pCharacteristic)
 
   int incValue = readMux(octButtonState[1].channel, bank_en, bank_sig);
   octButtonState[1].value = (incValue > 4094);
-  
-  if ( octButtonState[1].value && octButtonState[1].value != octButtonPrevState[1].value && selectedOctave < 8)
+
+  if (octButtonState[1].value && octButtonState[1].value != octButtonPrevState[1].value && selectedOctave < 8)
   {
     selectedOctave += 1;
   }
 
   int decValue = readMux(octButtonState[0].channel, bank_en, bank_sig);
   octButtonState[0].value = (decValue > 4094);
-  
-  if (octButtonState[0].value && octButtonState[0].value != octButtonPrevState[0].value &&  selectedOctave > -2)
+
+  if (octButtonState[0].value && octButtonState[0].value != octButtonPrevState[0].value && selectedOctave > -2)
   {
     selectedOctave -= 1;
   }

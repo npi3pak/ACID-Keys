@@ -8,13 +8,11 @@ class MyCallbacks : public BLEServerCallbacks
   {
     pServer->updateConnParams(param->connect.remote_bda, 0x01, 0x90, 0, 800);
     deviceConnected = true;
-    Serial.println('deviceConnected true');
   }
 
   void onDisconnect(BLEServer *pServer)
   {
     deviceConnected = false;
-    Serial.println('deviceConnected false');
   }
 };
   
