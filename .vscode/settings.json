@@ -1,6 +1,0 @@
-{
-  "terminal.integrated.env.osx": {
-    "PATH": "/Users/ivanvoid/.platformio/penv/bin:/Users/ivanvoid/.platformio/penv:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/gcc_arm/gcc-arm-none-eabi-4_9-2015q2/bin/:/usr/local/go/bin",
-    "PLATFORMIO_CALLER": "vscode"
-  }
-}
